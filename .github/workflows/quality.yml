@@ -29,6 +29,7 @@ jobs:
         with:
           path: build/conan-cache
           key: conan-${{ runner.os }}-${{ hashFiles('conan.lock', '.sdk/conan.lock', 'pixi.lock') }}
+          restore-keys: conan-${{ runner.os }}-
       - name: Prepare locked SDK and extension dependencies
         env:
           CONAN_HOME: ${{ github.workspace }}/build/conan-cache
