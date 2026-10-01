@@ -35,7 +35,8 @@ jobs:
         run: |
           pixi run conan profile detect --force
           pixi run conan install .sdk -of build/sdk-deps -s build_type=Release -s compiler.cppstd=17 -o with_extensions=False --build=missing --lockfile .sdk/conan.lock --lockfile-partial
-          pixi run conan install . -of build/deps -s build_type=Release -s compiler.cppstd=17 --build=missing --lockfile conan.lock
+          # Pixi supplies OpenGL headers/libraries; Conan's apt-only check cannot see them.
+          pixi run conan install . -of build/deps -s build_type=Release -s compiler.cppstd=17 --build=missing --lockfile conan.lock -c "opengl/*:tools.system.package_manager:mode=report"
       - uses: actions/cache/save@v5
         if: steps.conan-cache.outputs.cache-hit != 'true'
         with:
