@@ -1,0 +1,34 @@
+[workspace]
+name = "f8implayer"
+channels = ["conda-forge"]
+platforms = ["win-64", {name = "linux-glibc228", platform = "linux-64", glibc = "2.28"}]
+
+[dependencies]
+python = ">=3.14.3,<3.15"
+pip = ">=26,<27"
+pytest = ">=8.4.2,<9"
+conan = ">=2.23,<3"
+cmake = ">=3.30,<5"
+ninja = ">=1.13,<2"
+pkg-config = ">=0.29,<1"
+libzenohc = ">=1.9.0,<1.10"
+libzenohcxx = ">=1.9.0,<1.10"
+gtest = ">=1.17,<2"
+sdl3 = ">=3.2,<4"
+yt-dlp = ">=2025.8,<2027"
+
+[target.linux-64.dependencies]
+gxx_linux-64 = ">=11,<12"
+mpv = ">=0.39,<1"
+libgl-devel = ">=1.7,<2"
+libegl-devel = ">=1.7,<2"
+
+
+[pypi-dependencies]
+f8pysdk = {path = ".sdk/packages/f8pysdk", editable = false}
+hatchling = ">=1.28,<2"
+basedpyright = ">=1.31,<2"
+ruff = ">=0.12,<0.13"
+
+[tasks]
+check = "python -m f8pysdk.extension_packaging --check"

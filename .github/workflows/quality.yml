@@ -1,0 +1,63 @@
+name: extension
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+concurrency:
+  group: extension-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5
+        with:
+          repository: feel8-fun/f8studio
+          ref: 4a05364dddfd50a14725836f2867cab327512f0d
+          path: .sdk
+      - uses: prefix-dev/setup-pixi@v0.9.3
+        with:
+          pixi-version: v0.81.0
+          cache: true
+      - run: pixi run check
+      - uses: actions/cache/restore@v5
+        id: conan-cache
+        with:
+          path: build/conan-cache
+          key: conan-${{ runner.os }}-${{ hashFiles('conan.lock', '.sdk/conan.lock', 'pixi.lock') }}
+      - name: Prepare locked SDK and extension dependencies
+        env:
+          CONAN_HOME: ${{ github.workspace }}/build/conan-cache
+        run: |
+          pixi run conan profile detect --force
+          pixi run conan install .sdk -of build/sdk-deps -s build_type=Release -s compiler.cppstd=17 -o with_extensions=False --build=missing --lockfile .sdk/conan.lock --lockfile-partial
+          pixi run conan install . -of build/deps -s build_type=Release -s compiler.cppstd=17 --build=missing --lockfile conan.lock
+      - uses: actions/cache/save@v5
+        if: steps.conan-cache.outputs.cache-hit != 'true'
+        with:
+          path: build/conan-cache
+          key: ${{ steps.conan-cache.outputs.cache-primary-key }}
+      - name: Build and install the communication SDK
+        shell: bash
+        run: |
+          f8_sdk_toolchain=$(pixi run python -c "from pathlib import Path; candidates = list(Path('build/sdk-deps').rglob('conan_toolchain.cmake')); assert len(candidates) == 1, candidates; print(candidates[0].resolve().as_posix())")
+          pixi run cmake -S .sdk -B build/sdk "-DCMAKE_TOOLCHAIN_FILE=$f8_sdk_toolchain" -DF8_EXTENSION_PACKAGES= -DF8_BUILD_SDK_DEMO=OFF "-DF8_PIXI_CPP_ENV_DIR=${{ github.workspace }}/.pixi/envs/default" "-DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/build/sdk-install" -DCMAKE_BUILD_TYPE=Release
+          pixi run cmake --build build/sdk --config Release --parallel 2
+          pixi run cmake --install build/sdk --config Release
+      - name: Build only this extension
+        run: |
+          pixi run cmake -S . -B build/native -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/build/deps/conan_toolchain.cmake "-DCMAKE_PREFIX_PATH=${{ github.workspace }}/build/sdk-install;${{ github.workspace }}/.pixi/envs/default;${{ github.workspace }}/.pixi/envs/default/Library" -DCMAKE_BUILD_TYPE=Release
+          pixi run cmake --build build/native --config Release --parallel 2
+          pixi run ctest --test-dir build/native -C Release --output-on-failure
+      - run: pixi run python -m f8pysdk.extension_packaging --runtime-root build/native/runtime/bundles --output build/extension.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: extension-${{ runner.os }}
+          path: |
+            build/extension.zip
+            build/extension.zip.sha256
+          if-no-files-found: error
