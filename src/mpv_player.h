@@ -1,5 +1,7 @@
 #pragma once
 
+#include "f8cppsdk/bgra_frame_sink.h"
+
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -19,7 +21,7 @@ extern "C" {
 
 namespace f8::implayer {
 
-class VideoFrameSink;
+
 
 class MpvPlayer {
  public:
@@ -93,7 +95,7 @@ class MpvPlayer {
   bool setCookiesFile(const std::string& cookies_file);
   void resetVideoOutput();
   void resetPlaybackState();
-  void setVideoFrameSink(std::shared_ptr<VideoFrameSink> sink);
+  void setFrameSink(std::shared_ptr<f8::cppsdk::BgraFrameSink> sink);
   void setVideoOutputMaxSize(std::uint32_t max_width, std::uint32_t max_height);
   void setVideoOutputMaxFps(double max_fps);
   void setFrameExportViewMode(FrameExportViewMode mode);
@@ -129,7 +131,7 @@ class MpvPlayer {
   void notifyEofReachedOnce();
   void handleVideoReconfig();
   std::pair<unsigned, unsigned> targetDimensions(unsigned width, unsigned height) const;
-  std::shared_ptr<VideoFrameSink> sharedSink() const;
+  std::shared_ptr<f8::cppsdk::BgraFrameSink> sharedSink() const;
   bool ensureVideoTargets(unsigned width, unsigned height);
   bool ensureDownsampleTargets(unsigned width, unsigned height);
   bool ensureReadbackPbos(std::size_t bytes);
@@ -162,7 +164,7 @@ class MpvPlayer {
   bool eventNotified_ = false;
 
   mutable std::mutex sinkMutex_;
-  std::shared_ptr<VideoFrameSink> sink_;
+  std::shared_ptr<f8::cppsdk::BgraFrameSink> sink_;
 
   // Frame export rate-limiter state (render thread).
   mutable std::mutex exportRateMutex_;

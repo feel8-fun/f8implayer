@@ -28,7 +28,9 @@ extern "C" SDL_AppResult SDLCALL SDL_AppInit(void** appstate, int argc, char* ar
 
   try {
     spdlog::set_default_logger(spdlog::stdout_color_mt("console"));
-  } catch (...) {}
+  } catch (const spdlog::spdlog_ex& exc) {
+    std::cerr << "implayer console logger initialization failed: " << exc.what() << "\n";
+  }
   spdlog::set_level(spdlog::level::info);
   spdlog::flush_on(spdlog::level::info);
 

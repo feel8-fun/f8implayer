@@ -23,6 +23,8 @@ set(F8_IMPLAYER_LIBMPV_WIN_SHA256 "e75982d90a1fa3620b194204420386f590b4e96f03dc9
 set(F8_IMPLAYER_SOURCES
   src/main.cpp
   src/implayer_service.cpp
+  src/media_source.cpp
+  src/playlist_control.cpp
   src/implayer_gui.cpp
   src/sdl_video_window.cpp
   src/gl_loader.cpp

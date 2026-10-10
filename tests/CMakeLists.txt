@@ -1,6 +1,6 @@
 find_package(GTest REQUIRED)
-add_executable(f8implayer_tests test_implayer_playback_state.cpp)
+add_executable(f8implayer_tests test_implayer_playback_state.cpp test_media_source.cpp ../src/media_source.cpp)
 target_compile_features(f8implayer_tests PRIVATE cxx_std_17)
 target_include_directories(f8implayer_tests PRIVATE ../src)
-target_link_libraries(f8implayer_tests PRIVATE f8cppsdk GTest::gtest GTest::gtest_main)
+target_link_libraries(f8implayer_tests PRIVATE f8cppsdk GTest::gtest GTest::gtest_main nlohmann_json::nlohmann_json spdlog::spdlog ${F8_SDL3_TARGET})
 add_test(NAME f8implayer_tests COMMAND f8implayer_tests)
